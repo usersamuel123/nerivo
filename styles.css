@@ -146,3 +146,24 @@ footer{font-size:10px}
   .bento p{font-size:13px}
   .message{font-size:12px}
 }
+
+/* Landing-page scale: hero owns the first viewport */
+.hero{
+  width:100%;
+  max-width:1400px;
+  min-height:calc(100svh - 82px);
+  padding-top:clamp(64px,8vh,110px);
+  padding-bottom:clamp(64px,8vh,110px);
+}
+@media (min-width:1500px){
+  .hero{min-height:calc(100svh - 82px);max-width:1480px}
+}
+@media (max-width:1100px){
+  .hero{min-height:auto;padding-top:72px;padding-bottom:88px}
+}
+@media (max-width:700px){
+  .hero{min-height:calc(100svh - 70px);padding-top:48px;padding-bottom:58px;align-content:center}
+}
+@media (max-width:420px){
+  .hero{min-height:auto;padding-top:52px;padding-bottom:64px}
+}
