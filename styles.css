@@ -167,3 +167,49 @@ footer{font-size:10px}
 @media (max-width:420px){
   .hero{min-height:auto;padding-top:52px;padding-bottom:64px}
 }
+
+/* Hero proportion pass — scale the composition to the available viewport */
+@media (min-width:1200px){
+  .hero{
+    max-width:1480px;
+    grid-template-columns:minmax(500px,.88fr) minmax(650px,1.12fr);
+    gap:55px;
+    padding-left:38px;
+    padding-right:38px;
+  }
+  .hero-copy{max-width:590px}
+  .hero h1{
+    font-size:clamp(76px,6.2vw,108px);
+    line-height:.86;
+    margin:20px 0 30px;
+  }
+  .hero-copy>p{
+    max-width:560px;
+    font-size:18px;
+    line-height:1.52;
+  }
+  .actions{margin-top:32px}
+  .button{font-size:13px;padding:14px 18px}
+  .hero-art{width:100%}
+  .window{width:100%}
+  .window-body{min-height:400px}
+  .dashboard{padding:25px}
+  .dash-head h3{font-size:25px}
+  .metrics strong{font-size:28px}
+  .metrics>div,.chart,.lead-card{padding:15px}
+}
+@media (min-width:1500px){
+  .hero{
+    max-width:1540px;
+    grid-template-columns:minmax(550px,.86fr) minmax(700px,1.14fr);
+    gap:65px;
+  }
+  .hero h1{font-size:110px}
+  .hero-copy>p{font-size:18px}
+  .window-body{min-height:430px}
+}
+@media (max-width:1199px) and (min-width:851px){
+  .hero h1{font-size:clamp(68px,7vw,90px)}
+  .hero-copy>p{font-size:17px}
+  .hero-art{max-width:900px}
+}
