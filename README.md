@@ -43,3 +43,7 @@ The site does not expose Stripe secret credentials.
 `api/demo.js` validates the demo request server-side and, when `BREVO_API_KEY` is configured, creates/updates the contact in Brevo and sends an internal notification.
 
 The public frontend never receives the Brevo key.
+
+## Deployment check
+
+A fresh deployment should expose `/api/health`, which reports only whether the three required environment variables are present. It never returns their values.
