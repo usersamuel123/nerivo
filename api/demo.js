@@ -1,1 +1,46 @@
-export default async function handler(req,res){if(req.method!=="POST")return res.status(405).json({ok:false});try{const body=typeof req.body==="string"?JSON.parse(req.body):req.body||{};if(body.website)return res.status(200).json({ok:true});const name=String(body.name||"").trim().slice(0,120);const email=String(body.email||"").trim().toLowerCase().slice(0,160);const agency=String(body.agency||"").trim().slice(0,160);const privacy=body.privacy===true||body.privacy==="on"||body.privacy==="true";if(!name||!agency||!privacy||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({ok:false,message:"Dati non validi"});const key=process.env.BREVO_API_KEY;const notify=process.env.LEAD_NOTIFICATION_EMAIL;const senderId=Number(process.env.BREVO_SENDER_ID);if(!key||!notify||!senderId)return res.status(503).json({ok:false,message:"Lead capture non ancora configurato"});const r=await fetch("https://api.brevo.com/v3/contacts",{method:"POST",headers:{accept:"application/json","api-key":key,"content-type":"application/json"},body:JSON.stringify({email,attributes:{FIRSTNAME:name,COMPANY:agency},updateEnabled:true})});if(!r.ok&&r.status!==400){console.error("Brevo contacts error",r.status,await r.text());return res.status(502).json({ok:false,message:"Servizio lead temporaneamente non disponibile"});}const m=await fetch("https://api.brevo.com/v3/smtp/email",{method:"POST",headers:{accept:"application/json","api-key":key,"content-type":"application/json"},body:JSON.stringify({sender:{id:senderId},to:[{email:notify,name:"NERIVO"}],subject:"Nuova richiesta demo NERIVO",htmlContent:"<h2>Nuova richiesta demo</h2><p><strong>Nome:</strong> "+escapeHtml(name)+"</p><p><strong>Email:</strong> "+escapeHtml(email)+"</p><p><strong>Agenzia:</strong> "+escapeHtml(agency)+"</p>"})});if(!m.ok){console.error("Brevo SMTP error",m.status,await m.text());return res.status(502).json({ok:false,message:"Lead ricevuto ma notifica non inviata"});}return res.status(200).json({ok:true})}catch(e){return res.status(500).json({ok:false,message:"Errore temporaneo"})}}function escapeHtml(v){return v.replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
+export default async function handler(req,res){
+  if(req.method!=="POST")return res.status(405).json({ok:false});
+  try{
+    const body=typeof req.body==="string"?JSON.parse(req.body):req.body||{};
+    if(body.website)return res.status(200).json({ok:true});
+    const name=String(body.name||"").trim().slice(0,120);
+    const email=String(body.email||"").trim().toLowerCase().slice(0,160);
+    const agency=String(body.agency||"").trim().slice(0,160);
+    const privacy=body.privacy===true||body.privacy==="on"||body.privacy==="true";
+    if(!name||!agency||!privacy||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({ok:false,message:"Dati non validi"});
+    const key=String(process.env.BREVO_API_KEY||"").trim();
+    const notify=String(process.env.LEAD_NOTIFICATION_EMAIL||"").trim();
+    const senderId=Number(process.env.BREVO_SENDER_ID);
+    if(!key||!notify||!senderId)return res.status(503).json({ok:false,message:"Lead capture non ancora configurato"});
+    const r=await fetch("https://api.brevo.com/v3/contacts",{
+      method:"POST",
+      headers:{accept:"application/json","api-key":key,"content-type":"application/json"},
+      body:JSON.stringify({email,attributes:{FIRSTNAME:name,COMPANY:agency},updateEnabled:true})
+    });
+    if(!r.ok&&r.status!==400){
+      const detail=await r.text();
+      console.error("Brevo contacts error",r.status,detail);
+      return res.status(502).json({ok:false,message:"Brevo contatti: HTTP "+r.status});
+    }
+    const m=await fetch("https://api.brevo.com/v3/smtp/email",{
+      method:"POST",
+      headers:{accept:"application/json","api-key":key,"content-type":"application/json"},
+      body:JSON.stringify({
+        sender:{id:senderId},
+        to:[{email:notify,name:"NERIVO"}],
+        subject:"Nuova richiesta demo NERIVO",
+        htmlContent:"<h2>Nuova richiesta demo</h2><p><strong>Nome:</strong> "+escapeHtml(name)+"</p><p><strong>Email:</strong> "+escapeHtml(email)+"</p><p><strong>Agenzia:</strong> "+escapeHtml(agency)+"</p>"
+      })
+    });
+    if(!m.ok){
+      const detail=await m.text();
+      console.error("Brevo SMTP error",m.status,detail);
+      return res.status(502).json({ok:false,message:"Brevo email: HTTP "+m.status});
+    }
+    return res.status(200).json({ok:true});
+  }catch(e){
+    console.error("NERIVO demo error",e);
+    return res.status(500).json({ok:false,message:"Errore server: "+(e?.message||"sconosciuto")});
+  }
+}
+function escapeHtml(v){return v.replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
