@@ -351,3 +351,4 @@ h1,h2,h3,p{overflow-wrap:break-word}
 @media (forced-colors:active){
   .button,.nav-cta,.price,.conversation,.window,.system-section{forced-color-adjust:auto}
 }
+.hp{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
