@@ -103,3 +103,46 @@
   .system-section{padding-left:13px;padding-right:13px}
   .system-section .bento h3{font-size:24px}
 }
+
+/* Typography accessibility pass — readability is a design requirement */
+body{font-size:15px}
+.nav a,.nav-cta,.text-link{font-size:13px}
+.eyebrow{font-size:10px;letter-spacing:.16em}
+.hero-copy>p{font-size:17px;line-height:1.55}
+.button{font-size:13px}
+.statement p{font-size:clamp(28px,3.5vw,48px)}
+.section-head p,.pricing>div>p,.experience-head p{font-size:15px;line-height:1.6}
+.bento h3{font-size:30px}
+.bento p{font-size:14px;line-height:1.55}
+.number{font-size:9px}
+.mini-inbox b{font-size:12px}.mini-inbox small{font-size:9px}
+.quote{font-size:12px}.handoff span{font-size:8px}.handoff b{font-size:16px}.handoff small{font-size:11px}.handoff button{font-size:10px}
+.window-bar{font-size:8px}.window aside b{font-size:14px}.window aside small{font-size:8px}
+.dash-head small,.metrics small,.card-label{font-size:8px}
+.dash-head h3{font-size:23px}
+.metrics strong{font-size:26px}.metrics span{font-size:8px}
+.lead-row b{font-size:10px}.lead-row span{font-size:7px}.lead-row small{font-size:8px}
+.conversation-side small{font-size:8px}.conversation-side>b{font-size:26px}.conversation-side>span{font-size:10px}
+.score small{font-size:8px}.score strong{font-size:46px}.score em{font-size:11px}
+.message{font-size:13px;line-height:1.55}.status{font-size:8px}
+.price>small{font-size:9px}.price strong{font-size:76px}.price p,.price li{font-size:13px}.price sup{font-size:13px}
+.demo>p{font-size:15px}.fields input{font-size:13px}.demo form small{font-size:10px}
+footer{font-size:10px}
+@media(max-width:700px){
+  body{font-size:15px}
+  .eyebrow{font-size:9px}
+  .hero-copy>p{font-size:16px}
+  .section-head p,.pricing>div>p,.experience-head p{font-size:14px}
+  .bento h3{font-size:28px}
+  .bento p{font-size:13px}
+  .message{font-size:12px}
+  .price p,.price li{font-size:12px}
+  .demo>p{font-size:14px}
+  .fields input{font-size:13px}
+}
+@media(max-width:380px){
+  .hero-copy>p{font-size:15px}
+  .bento h3{font-size:26px}
+  .bento p{font-size:13px}
+  .message{font-size:12px}
+}
