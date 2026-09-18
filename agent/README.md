@@ -2,25 +2,22 @@
 
 Local autonomous operations layer for NERIVO.
 
-## Purpose
-Run a local agent on the owner's Windows PC. The agent keeps a durable task queue, calls a local Ollama model, performs bounded business/engineering tasks, and writes an audit log.
+## Recommended starting model
+Ollama currently lists gpt-oss:20b at about 14 GB with a 128K context window and native agentic/tool capabilities. Its published MXFP4 format is designed to fit systems with about 16 GB memory. Actual speed and GPU utilization depend on the AMD driver/runtime, so NERIVO should benchmark the local machine before increasing autonomy.
 
-## First model
-Recommended starting model: `gpt-oss:20b`. Ollama lists it at about 14 GB with 128K context and native tool/agentic capabilities, designed for local use. It is a reasonable first benchmark for a 16 GB GPU; actual performance depends on the AMD driver/runtime.
+## One-time install
+Open PowerShell in this folder and run:
+Set-ExecutionPolicy -Scope Process Bypass
+./install.ps1
 
-## Safety model
-- Read-only analysis by default.
-- No bank/card/credential handling.
-- No irreversible actions.
-- External messages are disabled until the operator explicitly enables outbound email.
-- Code/deploy actions are represented as proposals until enabled.
-- Every action is logged locally.
+The installer installs Ollama through winget if needed, downloads gpt-oss:20b, creates a Python environment, installs dependencies, creates a Windows logon task, and starts the agent.
 
-## Run
-1. Install Ollama.
-2. Pull the selected model.
-3. Create the virtual environment and install requirements.
-4. Copy `.env.example` to `.env`.
-5. Start `python run_agent.py`.
+## Configuration
+Copy .env.example to .env. Keep secrets only in this local file. Never commit it.
+Start with AGENT_MODE=supervised.
 
-The agent is intentionally conservative on first boot. Autonomy can be increased after observing its logs.
+## Owner brief
+python owner-brief.py
+
+## Safety
+No bank/card/credential handling. No irreversible actions. No outbound email by default. Every cycle is logged to SQLite.
