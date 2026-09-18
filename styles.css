@@ -25,3 +25,81 @@
 @media (min-width:1400px){.hero{max-width:1400px;grid-template-columns:42% 58%;gap:35px;padding-top:80px;padding-bottom:90px}.hero-art{width:100%}.system-section,.pricing{padding-top:110px;padding-bottom:110px}.experience{padding-top:110px;padding-bottom:110px}.conversation{max-width:1400px}}
 @media (max-width:1100px){.system-section,.pricing{padding-top:80px;padding-bottom:80px}.experience{padding-top:80px;padding-bottom:80px}.conversation{min-height:360px}.message.system{max-width:78%}}
 @media (max-width:600px){.system-section,.pricing,.experience{padding-top:64px;padding-bottom:64px}.system-section .section-head{margin-bottom:32px}.conversation{min-height:0}.message.system{max-width:94%}}
+
+/* NERIVO layout master correction */
+.system-section{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:88px 30px 92px;
+  background:#211d36;
+  border:0;
+  color:#fff;
+}
+.system-section .section-head,
+.system-section .bento{
+  width:min(1400px,100%);
+  margin-left:auto;
+  margin-right:auto;
+}
+.system-section .section-head{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:90px;
+  margin-bottom:44px;
+}
+.system-section .section-head h2{color:#fff;margin-top:12px}
+.system-section .section-head p{color:#b8b4bd}
+.system-section .bento{grid-template-columns:1.15fr .85fr .85fr;gap:10px}
+.system-section .bento article{min-height:250px}
+.system-section .bento .bento-large{min-height:510px}
+.system-section .bento-wide{min-height:250px}
+.system-section .bento h3{font-size:27px}
+.system-section .bento p{font-size:12px}
+.system-section .number{color:#8f8999}
+.system-section .bento-large{background:#151515}
+.system-section .bento article:not(.bento-large){background:#faf9f6}
+.system-section .mini-inbox{bottom:22px}
+.system-section .bento-wide{grid-column:span 2}
+
+.message.system{
+  background:#211d36;
+  border:1px solid #403768;
+  color:#f3f0ff;
+  align-self:flex-end;
+  max-width:62%;
+}
+.experience{max-width:none}
+.experience,.pricing{padding-top:88px;padding-bottom:88px}
+.experience>*,.pricing>*{min-width:0}
+
+@media (min-width:1500px){
+  .system-section{padding-top:96px;padding-bottom:96px}
+  .system-section .bento .bento-large{min-height:470px}
+  .system-section .bento article{min-height:230px}
+  .system-section .bento-wide{min-height:230px}
+  .system-section .bento h3{font-size:29px}
+}
+@media (max-width:1100px){
+  .system-section{padding:76px 24px 78px}
+  .system-section .section-head{gap:45px}
+  .system-section .bento{grid-template-columns:1fr 1fr}
+  .system-section .bento .bento-large{grid-row:span 2;min-height:480px}
+  .system-section .bento-wide{grid-column:span 2}
+}
+@media (max-width:700px){
+  .system-section{padding:62px 16px 64px}
+  .system-section .section-head{grid-template-columns:1fr;gap:8px;margin-bottom:30px}
+  .system-section .section-head h2{font-size:clamp(38px,11vw,54px)}
+  .system-section .bento{grid-template-columns:1fr}
+  .system-section .bento .bento-large,.system-section .bento article,.system-section .bento-wide{grid-column:auto;grid-row:auto;min-height:270px}
+  .system-section .bento .bento-large{min-height:365px}
+  .system-section .bento-wide{display:block}
+  .system-section .bento h3{font-size:26px}
+  .system-section .bento p{font-size:12px}
+  .experience,.pricing{padding-top:64px;padding-bottom:64px}
+  .message.system{max-width:94%}
+}
+@media (max-width:380px){
+  .system-section{padding-left:13px;padding-right:13px}
+  .system-section .bento h3{font-size:24px}
+}
