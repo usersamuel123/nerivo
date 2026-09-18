@@ -1,0 +1,1 @@
+export default function handler(req,res){return res.status(200).json({ok:true,service:"nerivo",brevo:!!process.env.BREVO_API_KEY,notification:!!process.env.LEAD_NOTIFICATION_EMAIL,sender:!!process.env.BREVO_SENDER_ID})}
