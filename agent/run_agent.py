@@ -636,13 +636,13 @@ def process_sales_followups():
         first = (lead.get("last_name") or "ciao").split()[0]
         if target == 0:
             subject = "NERIVO — il prossimo passo per la tua agenzia"
-            body = f"<p>Ciao {html.escape(first)},</p><p>grazie per aver mostrato interesse per NERIVO.</p><p>Se vuoi partire subito: <a href="{html.escape(PAYMENT_LINK)}">attiva NERIVO</a>.</p><p>Se invece vuoi prima capire se si adatta al tuo flusso, rispondi a questa email con come gestisci oggi i lead.</p><p>NERIVO</p>"
+            body = f"<p>Ciao {html.escape(first)},</p><p>grazie per aver mostrato interesse per NERIVO.</p><p>Se vuoi partire subito: <a href='{html.escape(PAYMENT_LINK)}'>attiva NERIVO</a>.</p><p>Se invece vuoi prima capire se si adatta al tuo flusso, rispondi a questa email con come gestisci oggi i lead.</p><p>NERIVO</p>"
         elif target == 1:
             subject = "NERIVO — hai ancora una richiesta aperta"
-            body = f"<p>Ciao {html.escape(first)},</p><p>riprendo la tua richiesta NERIVO. Se vuoi partire subito, puoi attivarlo qui: <a href="{html.escape(PAYMENT_LINK)}">checkout NERIVO</a>.</p><p>Se hai una domanda o un dubbio, rispondi pure.</p><p>NERIVO</p>"
+            body = f"<p>Ciao {html.escape(first)},</p><p>riprendo la tua richiesta NERIVO. Se vuoi partire subito, puoi attivarlo qui: <a href='{html.escape(PAYMENT_LINK)}'>checkout NERIVO</a>.</p><p>Se hai una domanda o un dubbio, rispondi pure.</p><p>NERIVO</p>"
         elif target == 2:
             subject = "NERIVO — una domanda veloce"
-            body = f"<p>Ciao {html.escape(first)},</p><p>qual è il principale punto del tuo processo lead che vorresti automatizzare?</p><p>Se preferisci, puoi anche partire direttamente da qui: <a href="{html.escape(PAYMENT_LINK)}">attiva NERIVO</a>.</p><p>NERIVO</p>"
+            body = f"<p>Ciao {html.escape(first)},</p><p>qual è il principale punto del tuo processo lead che vorresti automatizzare?</p><p>Se preferisci, puoi anche partire direttamente da qui: <a href='{html.escape(PAYMENT_LINK)}'>attiva NERIVO</a>.</p><p>NERIVO</p>"
         else:
             subject = "NERIVO — chiudo qui per ora"
             body = "<p>Ciao,</p><p>non voglio riempirti la casella. Chiudo qui il follow-up; se vorrai riprendere il discorso, puoi rispondere a questa email.</p><p>NERIVO</p>"
@@ -703,7 +703,7 @@ def process_reactivation():
             continue
         if already_sent_key(email, "reactivation"):
             continue
-        body = f"<p>Ciao,</p><p>riapro un attimo il discorso NERIVO: se vuoi automatizzare il follow-up dei tuoi lead, puoi partire qui: <a href="{html.escape(PAYMENT_LINK)}">attiva NERIVO</a>.</p><p>Se non ti interessa più, basta rispondere e non ti ricontatteremo.</p><p>NERIVO</p>"
+        body = f"<p>Ciao,</p><p>riapro un attimo il discorso NERIVO: se vuoi automatizzare il follow-up dei tuoi lead, puoi partire qui: <a href='{html.escape(PAYMENT_LINK)}'>attiva NERIVO</a>.</p><p>Se non ti interessa più, basta rispondere e non ti ricontatteremo.</p><p>NERIVO</p>"
         result = send_brevo_email(email, "NERIVO — riapriamo il discorso?", body, "reactivation")
         if result.get("sent"):
             sent += 1
