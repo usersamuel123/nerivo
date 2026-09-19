@@ -804,7 +804,7 @@ def cycle():
             "stripe": bool(STRIPE_KEY),
             "github": bool(GITHUB_TOKEN),
             "vercel": bool(VERCEL_TOKEN and VERCEL_PROJECT_ID and VERCEL_TEAM_ID),
-            "inbound_email": bool(IMAP_HOST and EMAIL_USER and EMAIL_PASSWORD),
+            "inbound_email": bool(os.getenv("RESEND_API_KEY", "").strip() and os.getenv("RESEND_INBOUND_ADDRESS", "").strip()),
             "outbound_email": OUTBOUND,
             "auto_deploy": AUTO_DEPLOY,
             "auto_pr": AUTO_PR,
