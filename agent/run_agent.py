@@ -16,6 +16,8 @@ from pathlib import Path
 import requests
 from dotenv import load_dotenv
 
+from engineering import repair_once
+
 ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT / ".env")
 DB = ROOT / "agent.db"
@@ -788,6 +790,11 @@ def cycle():
     state["reactivation"] = process_reactivation()
     state["github"] = github_snapshot()
     state["vercel"] = vercel_snapshot()
+    try:
+        state["engineering"] = repair_once()
+    except Exception as e:
+        state["engineering"] = {"enabled": True, "action": "error", "error": str(e)[:500]}
+        log("engineering_error", state["engineering"])
 
     prompt = f"""Sei NERIVO Agent, operatore autonomo di un SaaS B2B italiano.
 Stato verificato del ciclo:
