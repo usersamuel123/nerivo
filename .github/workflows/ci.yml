@@ -1,0 +1,36 @@
+name: NERIVO CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install agent dependencies
+        run: python -m pip install --disable-pip-version-check requests python-dotenv
+      - name: Python compile check
+        run: python -m py_compile agent/run_agent.py agent/engineering.py
+      - name: JavaScript syntax check
+        run: |
+          node --check app.js
+          node --check api/demo.js
+          node --check api/health.js
+      - name: Required files check
+        run: |
+          test -f index.html
+          test -f privacy.html
+          test -f terms.html
+          test -f cookies.html
+          test -f vercel.json
