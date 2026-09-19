@@ -16,11 +16,12 @@ from pathlib import Path
 import requests
 from dotenv import load_dotenv
 
+ROOT = Path(__file__).resolve().parent
+load_dotenv(ROOT / ".env")
+
 from engineering import repair_once
 from growth import cycle as growth_cycle
 
-ROOT = Path(__file__).resolve().parent
-load_dotenv(ROOT / ".env")
 DB = ROOT / "agent.db"
 
 OLLAMA = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
