@@ -300,8 +300,7 @@ def run_tests():
             timeout=120,
         )
         if result.returncode:
-            return False, (result.stdout + "
-" + result.stderr)[-5000:]
+            return False, (result.stdout + "\\n" + result.stderr)[-5000:]
     return True, "local tests passed"
 
 
