@@ -118,11 +118,25 @@ def generate_and_publish():
  _set_pending({"pr":pr["number"],"branch":branch,"slug":slug});_log("content_pr_created",{"slug":slug,"branch":branch,"pr":pr["number"]})
  return {"enabled":True,"action":"pr_created","slug":slug,"branch":branch,"pr":pr["number"],"url":f"{BASE_URL}/content/posts/{slug}.html"}
 def decision_cycle():
- m=metrics_snapshot();d=[]
+ m=metrics_snapshot();d=[];actions=[]
  if m["leads"]==0:d.append("acquisition_attention")
- if m["leads"] and m["customers"]==0:d.append("conversion_attention")
+ if m["leads"] and m["customers"]==0:
+  d.append("conversion_attention")
+  c=_db()
+  rows=c.execute("select * from lead_state where opted_out=0 and paid_at='' and status='qualified'").fetchall()
+  c.close()
+  for row in map(dict, rows):
+   email=row["email"]
+   last_out=row.get("last_outbound") or ""
+   if last_out:
+    try: age=(datetime.now(timezone.utc)-datetime.fromisoformat(last_out)).days
+    except Exception: age=0
+    if age<3: continue
+   result=_send(email,"NERIVO — il prossimo passo","Ciao,\n\nho ripreso la tua richiesta NERIVO. Se vuoi partire subito, puoi attivarlo qui: "+os.getenv("NERIVO_PAYMENT_LINK","https://buy.stripe.com/8x2cN79YZbTLgh9ggIc3m00")+"\n\nSe preferisci, rispondi a questa email con la tua esigenza principale e ti rispondiamo sul prossimo passo.\n\nNERIVO","conversion_attention")
+   actions.append({"email":email,"result":result})
  if m["qualified"]>0 and m["customers"]==0:d.append("followup_attention")
- _log("growth_decisions",{"metrics":m,"decisions":d});return {"metrics":m,"decisions":d}
+ _log("growth_decisions",{"metrics":m,"decisions":d,"actions":actions})
+ return {"metrics":m,"decisions":d,"actions":actions}
 def cycle():
  d=decision_cycle()
  try:
