@@ -43,21 +43,16 @@ def _put(path,content,message,branch,sha=None):
  if sha:p["sha"]=sha
  r=requests.put(f"https://api.github.com/repos/{REPO}/contents/{path}",headers=_headers(),json=p,timeout=30)
  return {"ok":r.ok,"status":r.status_code,"json":r.json() if r.text else {}}
-
 def _get_ref(branch="main"):
- r=requests.get(f"https://api.github.com/repos/{REPO}/git/ref/heads/{branch}",headers=_headers(),timeout=30)
- return r.json() if r.ok else None
-
+ r=requests.get(f"https://api.github.com/repos/{REPO}/git/ref/heads/{branch}",headers=_headers(),timeout=30);return r.json() if r.ok else None
 def _create_branch(branch):
  base=_get_ref("main")
  if not base:return None
  r=requests.post(f"https://api.github.com/repos/{REPO}/git/refs",headers=_headers(),json={"ref":f"refs/heads/{branch}","sha":base["object"]["sha"]},timeout=30)
  return base["object"]["sha"] if r.ok else None
-
 def _create_pr(branch,title,body):
  r=requests.post(f"https://api.github.com/repos/{REPO}/pulls",headers=_headers(),json={"title":title,"head":branch,"base":"main","body":body},timeout=30)
  return r.json() if r.ok else {"error":r.text[:500],"status":r.status_code}
-
 def _merge_pr(number,sha):
  r=requests.put(f"https://api.github.com/repos/{REPO}/pulls/{number}/merge",headers=_headers(),json={"sha":sha,"merge_method":"squash"},timeout=30)
  return r.json() if r.text else {"merged":r.ok}
@@ -69,26 +64,20 @@ def _pending_content_pr():
  if not v:return None
  try:return json.loads(v)
  except Exception:return None
-
 def _set_pending(v):
  _set("pending_content_pr",json.dumps(v,ensure_ascii=False) if v else "")
-
 def _finish_pending():
  pending=_pending_content_pr()
  if not pending:return {"action":"none"}
  number=pending.get("pr")
  if not number:return {"action":"cleared"}
  r=requests.get(f"https://api.github.com/repos/{REPO}/pulls/{number}",headers=_headers(),timeout=30)
- if not r.ok:
-  return {"action":"pending","pr":number,"status":"unavailable"}
+ if not r.ok:return {"action":"pending","pr":number,"status":"unavailable"}
  pr=r.json()
  if pr.get("merged"):
-  _set_pending(None)
-  _log("content_merged",{"pr":number,"branch":pending.get("branch")})
-  return {"action":"merged","pr":number}
+  _set_pending(None);_log("content_merged",{"pr":number,"branch":pending.get("branch")});return {"action":"merged","pr":number}
  if pr.get("state")=="closed":
-  _set_pending(None)
-  return {"action":"closed","pr":number}
+  _set_pending(None);return {"action":"closed","pr":number}
  sha=pr.get("head",{}).get("sha")
  if not sha:return {"action":"pending","pr":number,"status":"no_head"}
  runs=requests.get(f"https://api.github.com/repos/{REPO}/actions/runs",headers=_headers(),params={"head_sha":sha,"per_page":20},timeout=30)
@@ -97,17 +86,11 @@ def _finish_pending():
  run=relevant[0]
  if run.get("status")!="completed":return {"action":"pending","pr":number,"status":"ci_"+str(run.get("status"))}
  if run.get("conclusion")!="success":
-  _set_pending(None)
-  _log("content_ci_failed",{"pr":number,"conclusion":run.get("conclusion")})
-  return {"action":"blocked","pr":number,"status":"ci_"+str(run.get("conclusion"))}
+  _set_pending(None);_log("content_ci_failed",{"pr":number,"conclusion":run.get("conclusion")});return {"action":"blocked","pr":number,"status":"ci_"+str(run.get("conclusion"))}
  merged=_merge_pr(number,sha)
  if merged.get("merged"):
-  _set_pending(None)
-  _set("last_content_at",datetime.now(timezone.utc).isoformat())
-  _log("content_merged",{"pr":number,"branch":pending.get("branch")})
-  return {"action":"merged","pr":number}
+  _set_pending(None);_set("last_content_at",datetime.now(timezone.utc).isoformat());_log("content_merged",{"pr":number,"branch":pending.get("branch")});return {"action":"merged","pr":number}
  return {"action":"merge_failed","pr":number,"detail":merged}
-
 def generate_and_publish():
  if not CONTENT_ENABLED:return {"enabled":False,"action":"disabled"}
  if not GITHUB_TOKEN:return {"enabled":True,"action":"waiting","reason":"missing_github_token"}
@@ -132,8 +115,7 @@ def generate_and_publish():
  if not head:return {"enabled":True,"action":"failed","reason":"branch_head_unavailable","branch":branch}
  pr=_create_pr(branch,f"content: {title[:90]}",f"Automated SEO content generated from verified NERIVO metrics.\n\nSlug: {slug}")
  if not pr.get("number"):return {"enabled":True,"action":"pr_created_failed","branch":branch,"pr":pr}
- _set_pending({"pr":pr["number"],"branch":branch,"slug":slug})
- _log("content_pr_created",{"slug":slug,"branch":branch,"pr":pr["number"]})
+ _set_pending({"pr":pr["number"],"branch":branch,"slug":slug});_log("content_pr_created",{"slug":slug,"branch":branch,"pr":pr["number"]})
  return {"enabled":True,"action":"pr_created","slug":slug,"branch":branch,"pr":pr["number"],"url":f"{BASE_URL}/content/posts/{slug}.html"}
 def decision_cycle():
  m=metrics_snapshot();d=[]
@@ -142,4 +124,15 @@ def decision_cycle():
  if m["qualified"]>0 and m["customers"]==0:d.append("followup_attention")
  _log("growth_decisions",{"metrics":m,"decisions":d});return {"metrics":m,"decisions":d}
 def cycle():
- d=decision_cycle();return {"metrics":d["metrics"],"decisions":d["decisions"],"content":generate_and_publish()}
+ d=decision_cycle()
+ try:
+  from resend_inbound import cycle as resend_cycle
+  inbound=resend_cycle()
+ except Exception as e:
+  inbound={"configured":True,"ok":False,"error":str(e)[:500]};_log("resend_inbound_error",inbound)
+ try:
+  from recovery import cycle as recovery_cycle
+  recovery=recovery_cycle()
+ except Exception as e:
+  recovery={"enabled":True,"ok":False,"error":str(e)[:500]};_log("recovery_error",recovery)
+ return {"metrics":d["metrics"],"decisions":d["decisions"],"inbound":inbound,"recovery":recovery,"content":generate_and_publish()}
