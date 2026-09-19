@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+agent/.env
+agent/agent.db
+agent/__pycache__/
+agent/.venv/
+*.pyc
+.vercel/
+.DS_Store
