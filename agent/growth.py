@@ -38,10 +38,29 @@ def _json(s):
 def _headers():return {"Accept":"application/vnd.github+json","Authorization":f"Bearer {GITHUB_TOKEN}","Content-Type":"application/json"}
 def _file(path):
  r=requests.get(f"https://api.github.com/repos/{REPO}/contents/{path}",headers=_headers(),params={"ref":"main"},timeout=30);return r.json() if r.ok else None
-def _put(path,content,message,sha=None):
- p={"message":message,"content":base64.b64encode(content.encode()).decode()}
+def _put(path,content,message,branch,sha=None):
+ p={"message":message,"content":base64.b64encode(content.encode()).decode(),"branch":branch}
  if sha:p["sha"]=sha
- r=requests.put(f"https://api.github.com/repos/{REPO}/contents/{path}",headers=_headers(),json=p,timeout=30);return {"ok":r.ok,"status":r.status_code}
+ r=requests.put(f"https://api.github.com/repos/{REPO}/contents/{path}",headers=_headers(),json=p,timeout=30)
+ return {"ok":r.ok,"status":r.status_code,"json":r.json() if r.text else {}}
+
+def _get_ref(branch="main"):
+ r=requests.get(f"https://api.github.com/repos/{REPO}/git/ref/heads/{branch}",headers=_headers(),timeout=30)
+ return r.json() if r.ok else None
+
+def _create_branch(branch):
+ base=_get_ref("main")
+ if not base:return None
+ r=requests.post(f"https://api.github.com/repos/{REPO}/git/refs",headers=_headers(),json={"ref":f"refs/heads/{branch}","sha":base["object"]["sha"]},timeout=30)
+ return base["object"]["sha"] if r.ok else None
+
+def _create_pr(branch,title,body):
+ r=requests.post(f"https://api.github.com/repos/{REPO}/pulls",headers=_headers(),json={"title":title,"head":branch,"base":"main","body":body},timeout=30)
+ return r.json() if r.ok else {"error":r.text[:500],"status":r.status_code}
+
+def _merge_pr(number,sha):
+ r=requests.put(f"https://api.github.com/repos/{REPO}/pulls/{number}/merge",headers=_headers(),json={"sha":sha,"merge_method":"squash"},timeout=30)
+ return r.json() if r.text else {"merged":r.ok}
 def _slug(v):
  s=v.lower().replace("à","a").replace("è","e").replace("é","e").replace("ì","i").replace("ò","o").replace("ù","u")
  return re.sub(r"-+","-",re.sub(r"[^a-z0-9\s-]","",s).replace(" ","-")).strip("-")[:70]
@@ -59,9 +78,17 @@ def generate_and_publish():
  if _file(path):return {"enabled":True,"action":"waiting","reason":"slug_exists"}
  page=f'<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)} — NERIVO</title><meta name="description" content="{html.escape(summary)}"><link rel="stylesheet" href="/styles.css"></head><body><main style="max-width:820px;margin:0 auto;padding:64px 24px"><p><a href="/blog.html">← Risorse</a></p><h1>{html.escape(title)}</h1><p>{html.escape(summary)}</p><article>{body}</article></main></body></html>'
  current=_file("content/index.json");posts=json.loads(base64.b64decode(current["content"]).decode()) if current else [];posts.insert(0,{"slug":slug,"title":title,"summary":summary,"date":datetime.now(timezone.utc).date().isoformat()})
- a=_put(path,page,f"content: publish {slug}");b=_put("content/index.json",json.dumps(posts,ensure_ascii=False,indent=2)+"\n","content: update index",current.get("sha") if current else None)
- if a["ok"] and b["ok"]:_set("last_content_at",datetime.now(timezone.utc).isoformat());_log("content_published",{"slug":slug});return {"enabled":True,"action":"published","slug":slug,"url":f"{BASE_URL}/content/posts/{slug}.html"}
- return {"enabled":True,"action":"partial_failure","writes":[a,b]}
+ branch="agent/content-"+str(int(datetime.now(timezone.utc).timestamp()))
+ if not _create_branch(branch):return {"enabled":True,"action":"failed","reason":"branch_creation_failed"}
+ a=_put(path,page,f"content: publish {slug}",branch);b=_put("content/index.json",json.dumps(posts,ensure_ascii=False,indent=2)+"\n","content: update index",branch,current.get("sha") if current else None)
+ if not (a["ok"] and b["ok"]):return {"enabled":True,"action":"partial_failure","branch":branch,"writes":[a,b]}
+ head=_get_ref(branch)
+ if not head:return {"enabled":True,"action":"failed","reason":"branch_head_unavailable","branch":branch}
+ pr=_create_pr(branch,f"content: {title[:90]}",f"Automated SEO content generated from verified NERIVO metrics.\n\nSlug: {slug}")
+ if not pr.get("number"):return {"enabled":True,"action":"pr_created_failed","branch":branch,"pr":pr}
+ _set("last_content_at",datetime.now(timezone.utc).isoformat())
+ _log("content_pr_created",{"slug":slug,"branch":branch,"pr":pr["number"]})
+ return {"enabled":True,"action":"pr_created","slug":slug,"branch":branch,"pr":pr["number"],"url":f"{BASE_URL}/content/posts/{slug}.html"}
 def decision_cycle():
  m=metrics_snapshot();d=[]
  if m["leads"]==0:d.append("acquisition_attention")
