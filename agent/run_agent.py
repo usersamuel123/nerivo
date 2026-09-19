@@ -17,6 +17,7 @@ import requests
 from dotenv import load_dotenv
 
 from engineering import repair_once
+from growth import cycle as growth_cycle
 
 ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT / ".env")
@@ -788,6 +789,11 @@ def cycle():
     state["subscriptions"] = process_subscriptions()
     state["customer_lifecycle"] = process_customer_lifecycle()
     state["reactivation"] = process_reactivation()
+    try:
+        state["growth"] = growth_cycle()
+    except Exception as e:
+        state["growth"] = {"action": "error", "error": str(e)[:500]}
+        log("growth_error", state["growth"])
     state["github"] = github_snapshot()
     state["vercel"] = vercel_snapshot()
     try:
