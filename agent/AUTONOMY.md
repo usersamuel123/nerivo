@@ -1,40 +1,26 @@
-# NERIVO Agent — required integrations
+# NERIVO Agent — autonomy policy
 
-Put secrets ONLY in the local `agent/.env` file.
+The local agent operates continuously on the owner's PC.
 
-Required for full autonomous operation:
-- BREVO_API_KEY
-- BREVO_SENDER_ID
-- LEAD_NOTIFICATION_EMAIL
-- STRIPE_SECRET_KEY (live mode only when you intentionally enable sales automation)
-- GITHUB_TOKEN (repository-scoped token for the NERIVO repo)
-- VERCEL_TOKEN
-- VERCEL_TEAM_ID / VERCEL_PROJECT_ID if needed by the Vercel API
-- NERIVO_EMAIL_IMAP_HOST / NERIVO_EMAIL_SMTP_HOST
-- NERIVO_EMAIL_USER / NERIVO_EMAIL_PASSWORD
+Automatic loops:
+- health checks for NERIVO and local Ollama
+- Brevo lead discovery and durable lead state
+- one-to-one follow-up only when OUTBOUND_EMAIL_ENABLED=true
+- Stripe revenue/subscription read-only metrics
+- GitHub repository health/recent commits
+- Vercel project/deployment health
+- SQLite audit log
+- local LLM operational prioritization
 
-Never commit `.env`.
+Safety gates:
+- no bank/card credentials
+- no refunds, payouts or money transfers
+- no Stripe price/billing changes
+- no destructive customer-data deletion
+- no bulk promotional campaigns
+- repository scope limited by GITHUB_REPOSITORY
+- no invented tool results
 
-## Operating policy
+Outbound is disabled by default. If enabled, the current implementation sends one-to-one follow-up to leads captured by the NERIVO demo flow and includes the existing Founding payment link. Use a verified sender and comply with applicable privacy and e-mail rules.
 
-The agent may automatically:
-- read and classify incoming NERIVO leads;
-- draft and, after outbound is explicitly enabled, send one-to-one transactional/customer-service replies;
-- schedule follow-ups;
-- read Stripe revenue/subscription state;
-- maintain a product backlog;
-- create branches, commits and pull requests;
-- run tests;
-- deploy only according to the configured production policy;
-- generate daily/weekly owner briefs.
-
-The agent must request owner approval for:
-- refunds, payouts or money transfers;
-- changing Stripe pricing or billing terms;
-- legal/contractual commitments;
-- deleting customer data;
-- bulk promotional outreach;
-- actions outside the NERIVO repository;
-- credential changes.
-
-No system should promise revenue or guarantee outcomes.
+Keep all secrets only in the local agent .env file and never commit it.
