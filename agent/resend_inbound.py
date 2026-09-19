@@ -230,7 +230,11 @@ Email del cliente:
 
 
 def cycle():
-    if not RESEND_KEY:
+    if not RESEND_KEY or not RESEND_ADDRESS:
+        return {"configured": False, "ok": False, "reason": "missing_resend_config"}
+    probe = _resend("/emails/receiving", {"limit": 1})
+    if probe is None:
+        return {"configured": True, "ok": False, "reason": "resend_receiving_unreachable"}
         return {"configured":False}
     data = _resend("/emails/receiving", {"limit": MAX_MESSAGES})
     if not data:
