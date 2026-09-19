@@ -21,12 +21,16 @@ jobs:
       - name: Install agent dependencies
         run: python -m pip install --disable-pip-version-check requests python-dotenv
       - name: Python compile check
-        run: python -m py_compile agent/run_agent.py agent/engineering.py
+        run: python -m py_compile agent/run_agent.py agent/engineering.py agent/growth.py
       - name: JavaScript syntax check
         run: |
           node --check app.js
           node --check api/demo.js
           node --check api/health.js
+          node --check api/lead.js
+          node --check api/inbound.js
+          node --check api/support.js
+          node --check api/metrics.js
       - name: Required files check
         run: |
           test -f index.html
@@ -34,3 +38,5 @@ jobs:
           test -f terms.html
           test -f cookies.html
           test -f vercel.json
+          test -f blog.html
+          test -f content/index.json
