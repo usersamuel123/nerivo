@@ -7,6 +7,8 @@ export default async function handler(req,res){
   const resendSecret=process.env.RESEND_WEBHOOK_SECRET;
   let brevoApi=false;
   let sender=false;
+  let resendApi=false;
+  let resendReceiving=false;
   if(key){
     try{
       const a=await fetch("https://api.brevo.com/v3/account",{headers:{accept:"application/json","api-key":key}});
@@ -17,16 +19,12 @@ export default async function handler(req,res){
       }
     }catch(e){}
   }
-  return res.status(200).json({
-    ok:true,
-    service:"nerivo",
-    brevo:!!key,
-    brevoApi,
-    notification:!!notify,
-    sender:!!senderId,
-    senderVerified:sender,
-    resend:!!resendKey,
-    resendInboundAddress:!!resendAddress,
-    resendWebhookSecret:!!resendSecret
-  });
+  if(resendKey){
+    try{
+      const a=await fetch("https://api.resend.com/emails/receiving?limit=1",{headers:{accept:"application/json","authorization":"Bearer "+resendKey}});
+      resendApi=a.ok;
+      resendReceiving=a.ok;
+    }catch(e){}
+  }
+  return res.status(200).json({ok:true,service:"nerivo",brevo:!!key,brevoApi,notification:!!notify,sender:!!senderId,senderVerified:sender,outboundEmail:!!(key&&senderId),resend:!!resendKey,resendInboundAddress:!!resendAddress,resendWebhookSecret:!!resendSecret,resendApi,resendReceiving});
 }
