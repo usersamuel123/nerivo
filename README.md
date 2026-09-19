@@ -28,13 +28,18 @@ The current Founding checkout is hosted by Stripe. Payment Link:
 
 The site does not expose Stripe secret credentials.
 
-## Go-live checklist
+## Production checklist
 
-1. Configure `BREVO_API_KEY` in Vercel.
-2. Finalize the legal/privacy information before actively collecting prospect data.
-3. Verify the Stripe business/tax settings for the Italian business.
-4. Connect a custom domain only after the NERIVO name/domain clearance decision.
-5. Run an end-to-end demo-form test and a Stripe test purchase/operational check as appropriate.
+1. Configure the Brevo server-side secrets in Vercel for Production.
+2. Legal pages contain the supplied Italian business identity data; operational legal review remains separate from deployment.
+3. Verify Stripe live checkout and Italian tax/business settings.
+4. Keep the public Vercel URL until the NERIVO domain is cleared and configured.
+5. Run the demo form and health endpoint end-to-end.
+6. Keep the local autonomous agent secrets only in `agent/.env`; never commit them.
+
+## Stack
+
+GitHub + Vercel + Brevo + Stripe + local Ollama agent. Cloudflare is not required by the NERIVO stack.
 
 ## Architecture
 
