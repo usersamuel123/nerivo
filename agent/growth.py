@@ -64,9 +64,55 @@ def _merge_pr(number,sha):
 def _slug(v):
  s=v.lower().replace("à","a").replace("è","e").replace("é","e").replace("ì","i").replace("ò","o").replace("ù","u")
  return re.sub(r"-+","-",re.sub(r"[^a-z0-9\s-]","",s).replace(" ","-")).strip("-")[:70]
+def _pending_content_pr():
+ v=_state("pending_content_pr")
+ if not v:return None
+ try:return json.loads(v)
+ except Exception:return None
+
+def _set_pending(v):
+ _set("pending_content_pr",json.dumps(v,ensure_ascii=False) if v else "")
+
+def _finish_pending():
+ pending=_pending_content_pr()
+ if not pending:return {"action":"none"}
+ number=pending.get("pr")
+ if not number:return {"action":"cleared"}
+ r=requests.get(f"https://api.github.com/repos/{REPO}/pulls/{number}",headers=_headers(),timeout=30)
+ if not r.ok:
+  return {"action":"pending","pr":number,"status":"unavailable"}
+ pr=r.json()
+ if pr.get("merged"):
+  _set_pending(None)
+  _log("content_merged",{"pr":number,"branch":pending.get("branch")})
+  return {"action":"merged","pr":number}
+ if pr.get("state")=="closed":
+  _set_pending(None)
+  return {"action":"closed","pr":number}
+ sha=pr.get("head",{}).get("sha")
+ if not sha:return {"action":"pending","pr":number,"status":"no_head"}
+ runs=requests.get(f"https://api.github.com/repos/{REPO}/actions/runs",headers=_headers(),params={"head_sha":sha,"per_page":20},timeout=30)
+ relevant=[x for x in runs.json().get("workflow_runs",[]) if x.get("name")=="NERIVO CI"] if runs.ok else []
+ if not relevant:return {"action":"pending","pr":number,"status":"waiting_ci"}
+ run=relevant[0]
+ if run.get("status")!="completed":return {"action":"pending","pr":number,"status":"ci_"+str(run.get("status"))}
+ if run.get("conclusion")!="success":
+  _set_pending(None)
+  _log("content_ci_failed",{"pr":number,"conclusion":run.get("conclusion")})
+  return {"action":"blocked","pr":number,"status":"ci_"+str(run.get("conclusion"))}
+ merged=_merge_pr(number,sha)
+ if merged.get("merged"):
+  _set_pending(None)
+  _set("last_content_at",datetime.now(timezone.utc).isoformat())
+  _log("content_merged",{"pr":number,"branch":pending.get("branch")})
+  return {"action":"merged","pr":number}
+ return {"action":"merge_failed","pr":number,"detail":merged}
+
 def generate_and_publish():
  if not CONTENT_ENABLED:return {"enabled":False,"action":"disabled"}
  if not GITHUB_TOKEN:return {"enabled":True,"action":"waiting","reason":"missing_github_token"}
+ pending=_finish_pending()
+ if pending.get("action") in {"pending","blocked","merge_failed"}:return {"enabled":True,**pending}
  last=_state("last_content_at")
  if last and (datetime.now(timezone.utc)-datetime.fromisoformat(last)).days<CONTENT_INTERVAL_DAYS:return {"enabled":True,"action":"waiting","reason":"interval"}
  m=metrics_snapshot()
@@ -86,7 +132,7 @@ def generate_and_publish():
  if not head:return {"enabled":True,"action":"failed","reason":"branch_head_unavailable","branch":branch}
  pr=_create_pr(branch,f"content: {title[:90]}",f"Automated SEO content generated from verified NERIVO metrics.\n\nSlug: {slug}")
  if not pr.get("number"):return {"enabled":True,"action":"pr_created_failed","branch":branch,"pr":pr}
- _set("last_content_at",datetime.now(timezone.utc).isoformat())
+ _set_pending({"pr":pr["number"],"branch":branch,"slug":slug})
  _log("content_pr_created",{"slug":slug,"branch":branch,"pr":pr["number"]})
  return {"enabled":True,"action":"pr_created","slug":slug,"branch":branch,"pr":pr["number"],"url":f"{BASE_URL}/content/posts/{slug}.html"}
 def decision_cycle():
