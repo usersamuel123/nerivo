@@ -46,7 +46,9 @@ It does **not** autonomously:
 
 GitHub and Vercel health are monitored. Repository scope is restricted to `GITHUB_REPOSITORY`.
 
-Automatic code mutation/deployment is intentionally not inferred from an LLM plan. Any future autonomous engineering action must be an explicit, auditable tool operation with rollback/approval controls.
+The local engineering loop can automatically repair verified technical failures: it inspects CI/Vercel/health state, asks the local Ollama model for a minimal patch, restricts editable paths, runs local checks, opens a pull request, waits for `NERIVO CI`, and can merge automatically when CI passes. Vercel's Git integration can then deploy the merged `main` commit.
+
+The engineering loop does not modify workflows, Vercel configuration, legal pages, secrets, billing configuration or destructive customer data. It only acts on a concrete detected failure; it does not invent failures.
 
 ## Accounting
 
